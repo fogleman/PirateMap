@@ -52,5 +52,7 @@ def xkcdify(shape, spacing, intensity):
             for child in shape.geoms])
     elif isinstance(shape, Polygon):
         return Polygon(perturbed(shape.exterior.coords, spacing, intensity))
+    elif isinstance(shape, LineString):
+        return LineString(perturbed(shape.coords, spacing, intensity))
     else:
         raise Exception('unsupported shape')

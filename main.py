@@ -18,6 +18,8 @@ def make_layer():
     return x
 
 def render_shape(dc, shape):
+    if shape.is_empty:
+        return
     if isinstance(shape, MultiPolygon):
         for child in shape.geoms:
             render_shape(dc, child)
@@ -85,6 +87,7 @@ def render(seed=None):
     points = poisson_disc(0, 0, width, height, 8, 16)
     shape1 = layer.alpha_shape(points, 0.1, 0.1).buffer(-4).buffer(4)
     shape2 = layer.alpha_shape(points, 0.3, 0.1).buffer(-8).buffer(4)
+    shape3 = layer.alpha_shape(points, 0.5, 0.1).buffer(-16).buffer(4)
     points = [x for x in points if shape1.contains(Point(*x))]
     path = find_path(layer, points, 16)
     mark = path[0]
@@ -117,6 +120,10 @@ def render(seed=None):
     # grassy land
     dc.set_source_rgb(*Color('#BDF271').rgb)
     render_shape(dc, shape2)
+    dc.fill()
+    # grassy land
+    dc.set_source_rgb(*Color('#588F27').rgb)
+    render_shape(dc, shape3)
     dc.fill()
     # path
     dc.set_source_rgb(*Color('#DC3522').rgb)
