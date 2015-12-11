@@ -35,29 +35,61 @@ def render_shape(dc, shape):
         # for interior in shape.interiors:
         #     render_shape(dc, interior)
 
+def perturb(shape, spacing=1, magnitude=8):
+    if isinstance(shape, MultiPolygon):
+        return MultiPolygon([perturb(child) for child in shape.geoms])
+    if isinstance(shape, Polygon):
+        coords = shape.exterior.coords
+        points = []
+        length = 0
+        for (x1, y1), (x2, y2) in zip(coords, coords[1:]):
+            dx = x2 - x1
+            dy = y2 - y1
+            a = math.atan2(dy, dx) + math.pi / 2
+            dt = spacing / math.hypot(dx, dy)
+            t = 0
+            while t < 1:
+                x = x1 + dx * t
+                y = y1 + dy * t
+                p = noise.snoise2(length * 0.1, 0, 4)
+                x = x + math.cos(a) * p * magnitude
+                y = y + math.sin(a) * p * magnitude
+                points.append((x, y))
+                t += dt
+                length += dt
+        return Polygon(points)
+
 def main():
+    random.seed(123)
     width = height = 512
     scale = 2
     surface = cairo.ImageSurface(cairo.FORMAT_RGB24, width * scale, height * scale)
     dc = cairo.Context(surface)
     dc.scale(scale, scale)
     dc.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
-    hex_color(dc, '2185C5')
-    dc.paint()
     layer = make_layer()
     layer.save('layer.png', 0, 0, width, height)
     points = poisson_disc(0, 0, width, height, 8, 32)
     shape1 = layer.alpha_shape(points, 0.1, 0.1).buffer(-4).buffer(4)
-    shape2 = layer.alpha_shape(points, 0.2, 0.1).buffer(-8).buffer(4)
+    shape2 = layer.alpha_shape(points, 0.25, 0.1).buffer(-8).buffer(4)
+    # shape1 = perturb(shape1).buffer(-1).buffer(1)
+    # shape2 = perturb(shape2).buffer(-1).buffer(1)
+    # water background
+    hex_color(dc, '2185C5')
+    dc.paint()
+    # shallow water
     hex_color(dc, '7ECEFD')
     render_shape(dc, shape1.simplify(8).buffer(64).buffer(-32))
     dc.fill()
+    # land outline
     hex_color(dc, 'BDD4DE')
-    render_shape(dc, shape1.buffer(4))
+    render_shape(dc, shape1.buffer(2))
     dc.fill()
+    # sandy land
     hex_color(dc, 'FFFFA6')
     render_shape(dc, shape1)
     dc.fill()
+    # grassy land
     hex_color(dc, 'BDF271')
     render_shape(dc, shape2)
     dc.fill()
