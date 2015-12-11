@@ -1,10 +1,10 @@
 from alpha_shape import alpha_shape
 from colour import Color
 from poisson_disc import poisson_disc
-from shapely.geometry import Polygon, MultiPolygon
-from shapely.affinity import translate
+from shapely.geometry import Polygon, MultiPolygon, Point
 from xkcd import xkcdify
 import cairo
+import graph
 import layers
 import math
 import noise
@@ -46,6 +46,26 @@ def render_mark_symbol(dc, x, y):
     dc.move_to(x - n, y + n)
     dc.line_to(x + n, y - n)
 
+def render_curve(dc, points, alpha):
+    items = zip(points, points[1:], points[2:], points[3:])
+    for (x1, y1), (x2, y2), (x3, y3), (x4, y4) in items:
+        a1 = math.atan2(y2 - y1, x2 - x1)
+        a2 = math.atan2(y4 - y3, x4 - x3)
+        cx = x2 + math.cos(a1) * alpha
+        cy = y2 + math.sin(a1) * alpha
+        dx = x3 - math.cos(a2) * alpha
+        dy = y3 - math.sin(a2) * alpha
+        dc.curve_to(cx, cy, dx, dy, x3, y3)
+
+def find_path(layer, points, threshold):
+    g = graph.make_graph(points, threshold)
+    end = max(points, key=lambda (x, y): layer.get(x, y))
+    points.sort(key=lambda (x, y): math.hypot(x - end[0], y - end[1]))
+    for start in reversed(points):
+        path = graph.shortest_path(g, end, start)
+        if path:
+            return path
+
 def render(seed=None):
     random.seed(seed)
     width = height = 512
@@ -53,24 +73,21 @@ def render(seed=None):
     surface = cairo.ImageSurface(cairo.FORMAT_RGB24,
         width * scale, height * scale)
     dc = cairo.Context(surface)
+    dc.set_line_cap(cairo.LINE_CAP_ROUND)
+    dc.set_line_join(cairo.LINE_JOIN_ROUND)
     dc.scale(scale, scale)
     # dc.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
     layer = make_layer()
     # layer.save('layer.png', 0, 0, width, height)
     points = poisson_disc(0, 0, width, height, 8, 16)
-    mark = max(points, key=lambda (x, y): layer.get(x, y))
     shape1 = layer.alpha_shape(points, 0.1, 0.1).buffer(-4).buffer(4)
     shape2 = layer.alpha_shape(points, 0.3, 0.1).buffer(-8).buffer(4)
-    # shape1 = xkcdify(shape1, 2, 4).buffer(-1).buffer(1)
-    # shape2 = xkcdify(shape2, 2, 4).buffer(-1).buffer(1)
+    points = [x for x in points if shape1.contains(Point(*x))]
+    path = find_path(layer, points, 16)
+    mark = path[0]
     # water background
     dc.set_source_rgb(*Color('#2185C5').rgb)
     dc.paint()
-    # water symbols
-    # dc.set_source_rgb(*Color('#7ECEFD').rgb)
-    # for x, y in poisson_disc(0, 0, width, height, 48, 16):
-    #     render_water_symbol(dc, x, y)
-    # dc.stroke()
     # shallow water
     n = 5
     shape = shape1.simplify(8).buffer(32).buffer(-16)
@@ -98,10 +115,15 @@ def render(seed=None):
     dc.set_source_rgb(*Color('#BDF271').rgb)
     render_shape(dc, shape2)
     dc.fill()
+    # path
+    dc.set_source_rgb(*Color('#DC3522').rgb)
+    render_curve(dc, path, 4)
+    dc.set_dash([4])
+    dc.stroke()
+    dc.set_dash([])
     # mark
     dc.set_source_rgb(*Color('#DC3522').rgb)
     render_mark_symbol(dc, *mark)
-    dc.set_line_cap(cairo.LINE_CAP_ROUND)
     dc.set_line_width(4)
     dc.stroke()
     return surface

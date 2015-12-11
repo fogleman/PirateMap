@@ -10,7 +10,7 @@ def low_pass(values, alpha):
         result.append(y)
     return result
 
-def normalize(values, new_lo=-1, new_hi=1):
+def normalize(values, new_lo, new_hi):
     result = []
     lo = min(values)
     hi = max(values)
@@ -37,7 +37,7 @@ def perturbed(points, spacing, intensity):
     noises = [random.random() * 2 - 1 for _ in range(len(points)/2)]
     for _ in range(3):
         noises = low_pass(noises, 0.3)
-    noises = normalize(noises)
+    noises = normalize(noises, -1, 1)
     noises = noises + list(reversed(noises))
     for (x1, y1), (x2, y2), noise in zip(points, points[1:], noises):
         a = math.atan2(y2 - y1, x2 - x1) + math.pi / 2
@@ -48,10 +48,9 @@ def perturbed(points, spacing, intensity):
 
 def xkcdify(shape, spacing, intensity):
     if isinstance(shape, MultiPolygon):
-        return MultiPolygon([
-            xkcdify(child, spacing, intensity) for child in shape.geoms])
+        return MultiPolygon([xkcdify(child, spacing, intensity)
+            for child in shape.geoms])
     elif isinstance(shape, Polygon):
-        points = perturbed(shape.exterior.coords, spacing, intensity)
-        return Polygon(points)
+        return Polygon(perturbed(shape.exterior.coords, spacing, intensity))
     else:
         raise Exception('unsupported shape')
