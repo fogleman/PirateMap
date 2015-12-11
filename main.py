@@ -1,4 +1,5 @@
 from alpha_shape import alpha_shape
+from colour import Color
 from poisson_disc import poisson_disc
 from shapely.geometry import Polygon, MultiPolygon
 from shapely.affinity import translate
@@ -8,13 +9,6 @@ import layers
 import math
 import noise
 import random
-
-def hex_color(dc, color):
-    color = color[-6:]
-    r = int(color[0:2], 16) / 255.0
-    g = int(color[2:4], 16) / 255.0
-    b = int(color[4:6], 16) / 255.0
-    dc.set_source_rgb(r, g, b)
 
 def make_layer():
     x = layers.Noise(8).add(layers.Constant(0.6)).clamp()
@@ -60,7 +54,7 @@ def render(seed=None):
         width * scale, height * scale)
     dc = cairo.Context(surface)
     dc.scale(scale, scale)
-    dc.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
+    # dc.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
     layer = make_layer()
     # layer.save('layer.png', 0, 0, width, height)
     points = poisson_disc(0, 0, width, height, 8, 16)
@@ -70,34 +64,45 @@ def render(seed=None):
     # shape1 = xkcdify(shape1, 2, 4).buffer(-1).buffer(1)
     # shape2 = xkcdify(shape2, 2, 4).buffer(-1).buffer(1)
     # water background
-    hex_color(dc, '2185C5')
+    dc.set_source_rgb(*Color('#2185C5').rgb)
     dc.paint()
     # water symbols
-    # hex_color(dc, '7ECEFD')
+    # dc.set_source_rgb(*Color('#7ECEFD').rgb)
     # for x, y in poisson_disc(0, 0, width, height, 48, 16):
     #     render_water_symbol(dc, x, y)
     # dc.stroke()
     # shallow water
-    hex_color(dc, '4FA9E1')
-    render_shape(dc, shape1.simplify(8).buffer(48).buffer(-24))
-    dc.fill()
+    n = 5
+    shape = shape1.simplify(8).buffer(32).buffer(-16)
+    shapes = [shape]
+    for _ in range(n):
+        shape = shape.simplify(8).buffer(64).buffer(-32)
+        shape = xkcdify(shape, 2, 8)
+        shapes.append(shape)
+    shapes.reverse()
+    c1 = Color('#4FA9E1')
+    c2 = Color('#2185C5')
+    for c, shape in zip(c2.range_to(c1, n), shapes):
+        dc.set_source_rgb(*c.rgb)
+        render_shape(dc, shape)
+        dc.fill()
     # land outline
-    hex_color(dc, 'BDD4DE')
+    dc.set_source_rgb(*Color('#BDD4DE').rgb)
     render_shape(dc, shape1.buffer(2))
     dc.fill()
     # sandy land
-    hex_color(dc, 'FFFFA6')
+    dc.set_source_rgb(*Color('#FFFFA6').rgb)
     render_shape(dc, shape1)
     dc.fill()
     # grassy land
-    hex_color(dc, 'BDF271')
+    dc.set_source_rgb(*Color('#BDF271').rgb)
     render_shape(dc, shape2)
     dc.fill()
     # mark
-    hex_color(dc, 'DC3522')
+    dc.set_source_rgb(*Color('#DC3522').rgb)
     render_mark_symbol(dc, *mark)
     dc.set_line_cap(cairo.LINE_CAP_ROUND)
-    dc.set_line_width(3)
+    dc.set_line_width(4)
     dc.stroke()
     return surface
 
