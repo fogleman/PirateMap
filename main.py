@@ -58,7 +58,10 @@ def render_curve(dc, points, alpha):
         dc.curve_to(cx, cy, dx, dy, x3, y3)
 
 def find_path(layer, points, threshold):
-    g = graph.make_graph(points, threshold)
+    x = layers.Noise(4).add(layers.Constant(0.6)).clamp()
+    x = x.translate(random.random() * 1000, random.random() * 1000)
+    x = x.scale(0.01, 0.01)
+    g = graph.make_graph(points, threshold, x)
     end = max(points, key=lambda (x, y): layer.get(x, y))
     points.sort(key=lambda (x, y): math.hypot(x - end[0], y - end[1]))
     for start in reversed(points):

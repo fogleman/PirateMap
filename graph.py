@@ -19,7 +19,7 @@ def shortest_path(graph, start, end):
             for (neighbor, c) in graph[v].iteritems():
                 heapq.heappush(queue, (cost + c, neighbor, path))
 
-def make_graph(points, threshold):
+def make_graph(points, threshold, layer=None):
     graph = {}
     for a in points:
         graph[a] = {}
@@ -27,5 +27,8 @@ def make_graph(points, threshold):
             d = distance(a, b)
             if d > threshold:
                 continue
-            graph[a][b] = d
+            cost = d
+            if layer:
+                cost *= layer.get(*b)
+            graph[a][b] = cost
     return graph
