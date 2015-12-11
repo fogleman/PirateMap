@@ -35,7 +35,23 @@ def render_shape(dc, shape):
         # for interior in shape.interiors:
         #     render_shape(dc, interior)
 
-def perturb(shape, spacing=1, magnitude=8):
+def render_water_symbol(dc, x, y):
+    r = 4
+    e = math.pi / 4
+    for dx in [-r, r]:
+        dc.new_sub_path()
+        dc.arc_negative(dx + x + r, y, r, math.pi, math.pi / 2 - e)
+        dc.new_sub_path()
+        dc.arc(dx + x - r, y, r, 0, math.pi / 2 + e)
+
+def render_mark_symbol(dc, x, y):
+    n = 8
+    dc.move_to(x - n, y - n)
+    dc.line_to(x + n, y + n)
+    dc.move_to(x - n, y + n)
+    dc.line_to(x + n, y - n)
+
+def perturb(shape, spacing=2, magnitude=2):
     if isinstance(shape, MultiPolygon):
         return MultiPolygon([perturb(child) for child in shape.geoms])
     if isinstance(shape, Polygon):
@@ -51,7 +67,7 @@ def perturb(shape, spacing=1, magnitude=8):
             while t < 1:
                 x = x1 + dx * t
                 y = y1 + dy * t
-                p = noise.snoise2(length * 0.1, 0, 4)
+                p = noise.snoise2(length * 1, 0, 4)
                 x = x + math.cos(a) * p * magnitude
                 y = y + math.sin(a) * p * magnitude
                 points.append((x, y))
@@ -59,17 +75,19 @@ def perturb(shape, spacing=1, magnitude=8):
                 length += dt
         return Polygon(points)
 
-def main():
-    random.seed(123)
+def render(seed=None):
+    random.seed(seed)
     width = height = 512
     scale = 2
-    surface = cairo.ImageSurface(cairo.FORMAT_RGB24, width * scale, height * scale)
+    surface = cairo.ImageSurface(cairo.FORMAT_RGB24,
+        width * scale, height * scale)
     dc = cairo.Context(surface)
     dc.scale(scale, scale)
     dc.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
     layer = make_layer()
-    layer.save('layer.png', 0, 0, width, height)
-    points = poisson_disc(0, 0, width, height, 8, 32)
+    # layer.save('layer.png', 0, 0, width, height)
+    points = poisson_disc(0, 0, width, height, 8, 16)
+    mark = max(points, key=lambda (x, y): layer.get(x, y))
     shape1 = layer.alpha_shape(points, 0.1, 0.1).buffer(-4).buffer(4)
     shape2 = layer.alpha_shape(points, 0.25, 0.1).buffer(-8).buffer(4)
     # shape1 = perturb(shape1).buffer(-1).buffer(1)
@@ -77,9 +95,14 @@ def main():
     # water background
     hex_color(dc, '2185C5')
     dc.paint()
+    # water symbols
+    # hex_color(dc, '7ECEFD')
+    # for x, y in poisson_disc(0, 0, width, height, 48, 16):
+    #     render_water_symbol(dc, x, y)
+    # dc.stroke()
     # shallow water
-    hex_color(dc, '7ECEFD')
-    render_shape(dc, shape1.simplify(8).buffer(64).buffer(-32))
+    hex_color(dc, '4FA9E1')
+    render_shape(dc, shape1.simplify(8).buffer(48).buffer(-24))
     dc.fill()
     # land outline
     hex_color(dc, 'BDD4DE')
@@ -93,7 +116,16 @@ def main():
     hex_color(dc, 'BDF271')
     render_shape(dc, shape2)
     dc.fill()
-    surface.write_to_png('output.png')
+    # mark
+    hex_color(dc, 'DC3522')
+    render_mark_symbol(dc, *mark)
+    dc.set_line_cap(cairo.LINE_CAP_ROUND)
+    dc.set_line_width(3)
+    dc.stroke()
+    return surface
 
 if __name__ == '__main__':
-    main()
+    for seed in range(100):
+        print seed
+        surface = render(seed)
+        surface.write_to_png('out%04d.png' % seed)
