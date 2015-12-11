@@ -2,6 +2,7 @@ from alpha_shape import alpha_shape
 from poisson_disc import poisson_disc
 from shapely.geometry import Polygon, MultiPolygon
 from shapely.affinity import translate
+from xkcd import xkcdify
 import cairo
 import layers
 import math
@@ -51,30 +52,6 @@ def render_mark_symbol(dc, x, y):
     dc.move_to(x - n, y + n)
     dc.line_to(x + n, y - n)
 
-def perturb(shape, spacing=2, magnitude=2):
-    if isinstance(shape, MultiPolygon):
-        return MultiPolygon([perturb(child) for child in shape.geoms])
-    if isinstance(shape, Polygon):
-        coords = shape.exterior.coords
-        points = []
-        length = 0
-        for (x1, y1), (x2, y2) in zip(coords, coords[1:]):
-            dx = x2 - x1
-            dy = y2 - y1
-            a = math.atan2(dy, dx) + math.pi / 2
-            dt = spacing / math.hypot(dx, dy)
-            t = 0
-            while t < 1:
-                x = x1 + dx * t
-                y = y1 + dy * t
-                p = noise.snoise2(length * 1, 0, 4)
-                x = x + math.cos(a) * p * magnitude
-                y = y + math.sin(a) * p * magnitude
-                points.append((x, y))
-                t += dt
-                length += dt
-        return Polygon(points)
-
 def render(seed=None):
     random.seed(seed)
     width = height = 512
@@ -89,9 +66,9 @@ def render(seed=None):
     points = poisson_disc(0, 0, width, height, 8, 16)
     mark = max(points, key=lambda (x, y): layer.get(x, y))
     shape1 = layer.alpha_shape(points, 0.1, 0.1).buffer(-4).buffer(4)
-    shape2 = layer.alpha_shape(points, 0.25, 0.1).buffer(-8).buffer(4)
-    # shape1 = perturb(shape1).buffer(-1).buffer(1)
-    # shape2 = perturb(shape2).buffer(-1).buffer(1)
+    shape2 = layer.alpha_shape(points, 0.3, 0.1).buffer(-8).buffer(4)
+    # shape1 = xkcdify(shape1, 2, 4).buffer(-1).buffer(1)
+    # shape2 = xkcdify(shape2, 2, 4).buffer(-1).buffer(1)
     # water background
     hex_color(dc, '2185C5')
     dc.paint()
