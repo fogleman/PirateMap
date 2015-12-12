@@ -115,7 +115,8 @@ def render(seed=None):
     shape1 = layer.alpha_shape(points, 0.1, 1, 0.1).buffer(-4).buffer(4)
     shape2 = layer.alpha_shape(points, 0.3, 1, 0.1).buffer(-8).buffer(4)
     shape3 = layer.alpha_shape(points, 0.1, 0.3, 0.1).buffer(-12).buffer(4)
-    points = [x for x in points if shape1.contains(Point(*x))]
+    points = [x for x in points
+        if shape1.contains(Point(*x)) and layer.get(*x) >= 0.25]
     path = find_path(layer, points, 16)
     mark = path[0]
     # water background
