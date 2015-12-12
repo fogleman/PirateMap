@@ -20,10 +20,10 @@ class Layer(object):
         return Threshold(self, threshold)
     def clamp(self, lo=0, hi=1):
         return Clamp(self, lo, hi)
-    def filter_points(self, points, threshold):
-        return [(x, y) for x, y in points if self.get(x, y) > threshold]
-    def alpha_shape(self, points, threshold, alpha):
-        points = self.filter_points(points, threshold)
+    def filter_points(self, points, lo, hi):
+        return [(x, y) for x, y in points if lo <= self.get(x, y) < hi]
+    def alpha_shape(self, points, lo, hi, alpha):
+        points = self.filter_points(points, lo, hi)
         return alpha_shape(points, alpha)
     def save(self, path, x1, y1, x2, y2, lo=0, hi=1):
         data = []

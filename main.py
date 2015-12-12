@@ -116,9 +116,9 @@ def render(seed=None):
     layer = make_layer()
     # layer.save('layer.png', 0, 0, width, height)
     points = poisson_disc(0, 0, width, height, 8, 16)
-    shape1 = layer.alpha_shape(points, 0.1, 0.1).buffer(-4).buffer(4)
-    shape2 = layer.alpha_shape(points, 0.3, 0.1).buffer(-8).buffer(4)
-    shape3 = layer.alpha_shape(points, 0.5, 0.1).buffer(-16).buffer(4)
+    shape1 = layer.alpha_shape(points, 0.1, 1, 0.1).buffer(-4).buffer(4)
+    shape2 = layer.alpha_shape(points, 0.3, 1, 0.1).buffer(-8).buffer(4)
+    shape3 = layer.alpha_shape(points, 0.1, 0.3, 0.1).buffer(-12).buffer(4)
     points = [x for x in points if shape1.contains(Point(*x))]
     path = find_path(layer, points, 16)
     mark = path[0]
@@ -152,10 +152,10 @@ def render(seed=None):
     dc.set_source_rgb(*Color('#BDF271').rgb)
     render_shape(dc, shape2)
     dc.fill()
-    # grassy land
-    # dc.set_source_rgb(*Color('#588F27').rgb)
-    # render_shape(dc, shape3)
-    # dc.fill()
+    # dark sand
+    dc.set_source_rgb(*Color('#CFC291').rgb)
+    render_shape(dc, shape3)
+    dc.fill()
     # path
     dc.set_source_rgb(*Color('#DC3522').rgb)
     render_curve(dc, path, 4)
