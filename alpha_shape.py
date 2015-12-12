@@ -4,9 +4,6 @@ from shapely.geometry import MultiLineString
 from shapely.ops import cascaded_union, polygonize
 
 def alpha_shape(points, alpha):
-    tri = DelaunayTri(points)
-
-def alpha_shape(points, alpha):
     def add_edge(points, i, j):
         if (i, j) in edges or (j, i) in edges:
             return

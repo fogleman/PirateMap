@@ -28,9 +28,6 @@ def render_shape(dc, shape):
         for x, y in shape.exterior.coords:
             dc.line_to(x, y)
         dc.close_path()
-        # TODO: interior
-        # for interior in shape.interiors:
-        #     render_shape(dc, interior)
 
 def render_water_symbol(dc, x, y):
     r = 4
@@ -112,7 +109,6 @@ def render(seed=None):
     dc.set_line_cap(cairo.LINE_CAP_ROUND)
     dc.set_line_join(cairo.LINE_JOIN_ROUND)
     dc.scale(scale, scale)
-    # dc.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
     layer = make_layer()
     # layer.save('layer.png', 0, 0, width, height)
     points = poisson_disc(0, 0, width, height, 8, 16)
