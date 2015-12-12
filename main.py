@@ -48,8 +48,38 @@ def render_mark_symbol(dc, x, y):
     dc.move_to(x - n, y + n)
     dc.line_to(x + n, y - n)
 
+def render_compass_symbol(dc):
+    w, h = 4, 32
+    dc.line_to(-w, 0)
+    dc.line_to(0, h)
+    dc.line_to(w, 0)
+    dc.line_to(0, -h)
+    dc.close_path()
+    dc.set_source_rgb(*Color('#FFFFFF').rgb)
+    dc.set_line_width(4)
+    dc.stroke_preserve()
+    dc.fill()
+    dc.line_to(-w, 0)
+    dc.line_to(w, 0)
+    dc.line_to(0, -h)
+    dc.close_path()
+    dc.set_source_rgb(*Color('#DC3522').rgb)
+    dc.fill()
+    dc.save()
+    dc.translate(0, -h * 3 / 2 - 8)
+    w, h = 5, 15
+    dc.line_to(-w, h)
+    dc.line_to(-w, 0)
+    dc.line_to(w, h)
+    dc.line_to(w, 0)
+    dc.set_source_rgb(*Color('#FFFFFF').rgb)
+    dc.stroke()
+    dc.restore()
+
 def render_curve(dc, points, alpha):
     items = zip(points, points[1:], points[2:], points[3:])
+    # dc.line_to(*points[0])
+    # dc.line_to(*points[1])
     for (x1, y1), (x2, y2), (x3, y3), (x4, y4) in items:
         a1 = math.atan2(y2 - y1, x2 - x1)
         a2 = math.atan2(y4 - y3, x4 - x3)
@@ -58,6 +88,7 @@ def render_curve(dc, points, alpha):
         dx = x3 - math.cos(a2) * alpha
         dy = y3 - math.sin(a2) * alpha
         dc.curve_to(cx, cy, dx, dy, x3, y3)
+    # dc.line_to(*points[-1])
 
 def find_path(layer, points, threshold):
     x = layers.Noise(4).add(layers.Constant(0.6)).clamp()
@@ -122,9 +153,9 @@ def render(seed=None):
     render_shape(dc, shape2)
     dc.fill()
     # grassy land
-    dc.set_source_rgb(*Color('#588F27').rgb)
-    render_shape(dc, shape3)
-    dc.fill()
+    # dc.set_source_rgb(*Color('#588F27').rgb)
+    # render_shape(dc, shape3)
+    # dc.fill()
     # path
     dc.set_source_rgb(*Color('#DC3522').rgb)
     render_curve(dc, path, 4)
@@ -136,6 +167,12 @@ def render(seed=None):
     render_mark_symbol(dc, *mark)
     dc.set_line_width(4)
     dc.stroke()
+    # compass
+    dc.save()
+    dc.translate(48, height - 64)
+    dc.rotate(random.random() * math.pi / 4 - math.pi / 8)
+    render_compass_symbol(dc)
+    dc.restore()
     return surface
 
 if __name__ == '__main__':
