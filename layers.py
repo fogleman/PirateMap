@@ -20,6 +20,8 @@ class Layer(object):
         return Threshold(self, threshold)
     def clamp(self, lo=0, hi=1):
         return Clamp(self, lo, hi)
+    def normalize(self, lo, hi, new_lo, new_hi):
+        return Normalize(self, lo, hi, new_lo, new_hi)
     def filter_points(self, points, lo, hi):
         return [(x, y) for x, y in points if lo <= self.get(x, y) < hi]
     def alpha_shape(self, points, lo, hi, alpha):
@@ -109,6 +111,19 @@ class Clamp(Layer):
         v = self.layer.get(x, y)
         v = min(v, self.hi)
         v = max(v, self.lo)
+        return v
+
+class Normalize(Layer):
+    def __init__(self, layer, lo, hi, new_lo, new_hi):
+        self.layer = layer
+        self.lo = lo
+        self.hi = hi
+        self.new_lo = new_lo
+        self.new_hi = new_hi
+    def get(self, x, y):
+        v = self.layer.get(x, y)
+        p = (v - self.lo) / (self.hi - self.lo)
+        v = self.new_lo + p * (self.new_hi - self.new_lo)
         return v
 
 class Distance(Layer):

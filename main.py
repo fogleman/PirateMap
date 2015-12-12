@@ -29,23 +29,14 @@ def render_shape(dc, shape):
             dc.line_to(x, y)
         dc.close_path()
 
-def render_water_symbol(dc, x, y):
-    r = 4
-    e = math.pi / 4
-    for dx in [-r, r]:
-        dc.new_sub_path()
-        dc.arc_negative(dx + x + r, y, r, math.pi, math.pi / 2 - e)
-        dc.new_sub_path()
-        dc.arc(dx + x - r, y, r, 0, math.pi / 2 + e)
-
-def render_mark_symbol(dc, x, y):
+def render_mark(dc, x, y):
     n = 8
     dc.move_to(x - n, y - n)
     dc.line_to(x + n, y + n)
     dc.move_to(x - n, y + n)
     dc.line_to(x + n, y - n)
 
-def render_compass_symbol(dc):
+def render_compass(dc):
     w, h = 4, 32
     dc.line_to(-w, 0)
     dc.line_to(0, h)
@@ -137,14 +128,6 @@ def render(seed=None):
         dc.set_source_rgb(*c.rgb)
         render_shape(dc, shape)
         dc.fill()
-    # land outline
-    # dc.save()
-    # dc.set_source_rgb(*Color('#BDD4DE').rgb)
-    # for _ in range(5):
-    #     render_shape(dc, shape1.buffer(2))
-    #     dc.fill()
-    #     dc.translate(0, 1)
-    # dc.restore()
     # height
     dc.save()
     dc.set_source_rgb(*Color('#CFC291').rgb)
@@ -173,14 +156,14 @@ def render(seed=None):
     dc.set_dash([])
     # mark
     dc.set_source_rgb(*Color('#DC3522').rgb)
-    render_mark_symbol(dc, *mark)
+    render_mark(dc, *mark)
     dc.set_line_width(4)
     dc.stroke()
     # compass
     dc.save()
     dc.translate(48, height - 64)
     dc.rotate(random.random() * math.pi / 4 - math.pi / 8)
-    render_compass_symbol(dc)
+    render_compass(dc)
     dc.restore()
     return surface
 
