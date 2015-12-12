@@ -138,9 +138,21 @@ def render(seed=None):
         render_shape(dc, shape)
         dc.fill()
     # land outline
-    dc.set_source_rgb(*Color('#BDD4DE').rgb)
-    render_shape(dc, shape1.buffer(2))
-    dc.fill()
+    # dc.save()
+    # dc.set_source_rgb(*Color('#BDD4DE').rgb)
+    # for _ in range(5):
+    #     render_shape(dc, shape1.buffer(2))
+    #     dc.fill()
+    #     dc.translate(0, 1)
+    # dc.restore()
+    # height
+    dc.save()
+    dc.set_source_rgb(*Color('#CFC291').rgb)
+    for _ in range(5):
+        render_shape(dc, shape1)
+        dc.fill()
+        dc.translate(0, 1)
+    dc.restore()
     # sandy land
     dc.set_source_rgb(*Color('#FFFFA6').rgb)
     render_shape(dc, shape1)
