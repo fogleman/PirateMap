@@ -3,7 +3,7 @@ from colour import Color
 from poisson_disc import poisson_disc
 from shapely.geometry import Polygon, MultiPolygon, Point
 from xkcd import xkcdify
-import cairo
+import cairocffi as cairo
 import graph
 import layers
 import math
