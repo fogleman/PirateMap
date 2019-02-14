@@ -83,8 +83,8 @@ def find_path(layer, points, threshold):
     x = x.translate(random.random() * 1000, random.random() * 1000)
     x = x.scale(0.01, 0.01)
     g = graph.make_graph(points, threshold, x)
-    end = max(points, key=lambda (x, y): layer.get(x, y))
-    points.sort(key=lambda (x, y): math.hypot(x - end[0], y - end[1]))
+    end = max(points, key=lambda p: layer.get(*p))
+    points.sort(key=lambda p: math.hypot(p[0] - end[0], p[1] - end[1]))
     for start in reversed(points):
         path = graph.shortest_path(g, end, start)
         if path:
@@ -169,6 +169,6 @@ def render(seed=None):
 
 if __name__ == '__main__':
     for seed in range(100):
-        print seed
+        print(seed)
         surface = render(seed)
         surface.write_to_png('out%04d.png' % seed)

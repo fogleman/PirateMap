@@ -34,7 +34,7 @@ def evenly_spaced(points, spacing):
 def perturbed(points, spacing, intensity):
     result = []
     points = evenly_spaced(points, spacing)
-    noises = [random.random() * 2 - 1 for _ in range(len(points)/2)]
+    noises = [random.random() * 2 - 1 for _ in range(len(points) // 2)]
     for _ in range(3):
         noises = low_pass(noises, 0.3)
     noises = normalize(noises, -1, 1)

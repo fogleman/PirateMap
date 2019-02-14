@@ -16,7 +16,7 @@ def shortest_path(graph, start, end):
             seen.add(v)
             if v == end:
                 return path
-            for (neighbor, c) in graph[v].iteritems():
+            for (neighbor, c) in graph[v].items():
                 heapq.heappush(queue, (cost + c, neighbor, path))
 
 def make_graph(points, threshold, layer=None):

@@ -15,8 +15,8 @@ class Grid(object):
     def nearby(self, x, y):
         result = []
         i, j = self.normalize(x, y)
-        for p in xrange(i - 2, i + 3):
-            for q in xrange(j - 2, j + 3):
+        for p in range(i - 2, i + 3):
+            for q in range(j - 2, j + 3):
                 if (p, q) in self.cells:
                     result.append(self.cells[(p, q)])
         return result
@@ -36,7 +36,7 @@ def poisson_disc(x1, y1, x2, y2, r, n):
     grid.insert(x, y)
     while active:
         ax, ay = random.choice(active)
-        for i in xrange(n):
+        for i in range(n):
             a = random.random() * 2 * pi
             d = random.random() * r + r
             x = ax + cos(a) * d
